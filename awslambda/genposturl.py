@@ -6,16 +6,13 @@ client = boto3.client('s3')
 
 def lambda_handler(event, context):
     try:
-        response = client.generate_presigned_url(
-            Bucket="docfilestobeconverted",
-            Key='moneyovereverthing',
-            ExpiresIn=300
+        response = client.generate_presigned_post(
+            'docfilestobeconverted',
+            'moneyovermoney',
+            ExpiresIn=3600
             )
     except ClientError as e:
-        print(e)
+        logging.error(e)
         return None
-    return {
-        'statusCode': 200,
-        'body': response
-        
-    }
+    return response
+

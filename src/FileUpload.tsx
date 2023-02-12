@@ -32,7 +32,7 @@ export function FileUpload() {
   }
 
   return (
-    <Container className="bg-light">
+    <Container className="bg-light" style={{ marginTop: "30vh" }}>
       <Form.Group controlId="formfile" className="mb-3">
         <Form.Label></Form.Label>
         <Form.Control onChange={handleChange} type="file" />
