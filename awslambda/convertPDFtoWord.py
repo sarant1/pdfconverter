@@ -1,10 +1,11 @@
 from PyPDF4 import PdfFileWriter, PdfFileReader
-import PyPDF4
+from io import BytesIO
 
-
-PyPDF4.PdfFileReader('Transcript.pdf')
+PdfFileReader('Transcript.pdf')
 
 def put_watermark(input_page, output_page, watermark):
+
+    
 
     watermark_instance = PdfFileReader(watermark)
     watermark_page = watermark_instance.getPage(0)
@@ -16,13 +17,17 @@ def put_watermark(input_page, output_page, watermark):
     for page in range(input_pdf.getNumPages()):
 
         page = input_pdf.getPage(page)
-
         page.mergePage(watermark_page)
-
         pdf_writer.addPage(page)
+    
 
-    with open(output_page, 'wb') as out:
-        pdf_writer.write(out)
+    pdf_output = BytesIO()
+    pdf_writer.write(pdf_output)
+    pdf_data = pdf_output.getvalue()
+    pdf_output.close()
+
+    with open(pdf_data, 'wb') as out:
+        pdf_writer.write(pdf_data)
 
 if __name__ == "__main__":
     put_watermark(

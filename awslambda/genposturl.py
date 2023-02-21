@@ -12,10 +12,7 @@ def lambda_handler(event, context):
     try:
         response = client.generate_presigned_post(
             'docfilestobeconverted',
-            'moneyovermoney',
-            Fields= {
-                'pdfid': pdfid,
-            },
+            pdfid,
             ExpiresIn=3600
             )
     except ClientError as e:
