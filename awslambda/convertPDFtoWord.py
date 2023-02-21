@@ -1,37 +1,51 @@
-from PyPDF4 import PdfFileWriter, PdfFileReader
-from io import BytesIO
+import json
+import boto3
+from PyPDF4 import PdfFileReader, PdfFileWriter
+import io
 
-PdfFileReader('Transcript.pdf')
+s3 = boto3.client('s3')
 
-def put_watermark(input_page, output_page, watermark):
-
+def put_watermark(bucketkey):
     
+    # Grab the input files from s3 using uuid which is equal to bucketkey
+    input_page = s3.get_object(Bucket='docfilestobeconverted', Key=bucketkey)
+    watermark = s3.get_object(Bucket='docfilestobeconverted', Key='watermark.pdf')
+    
+    # setting s3 object to bytes so it can be manipulated
+    input_page = io.BytesIO(input_page['Body'].read())
+    watermark = io.BytesIO(watermark['Body'].read())
 
+    # Reading of the watermark file
     watermark_instance = PdfFileReader(watermark)
     watermark_page = watermark_instance.getPage(0)
-
+    
+    # Reading of input file
     input_pdf = PdfFileReader(input_page)
     pdf_writer = PdfFileWriter()
 
-
+    # Merging watermark file with pdf doc
     for page in range(input_pdf.getNumPages()):
-
         page = input_pdf.getPage(page)
         page.mergePage(watermark_page)
         pdf_writer.addPage(page)
     
-
-    pdf_output = BytesIO()
+    # This is saving the output file as pdf_data
+    pdf_output = io.BytesIO()
     pdf_writer.write(pdf_output)
     pdf_data = pdf_output.getvalue()
     pdf_output.close()
+    
+    # Putting new watermarked object in converteddocs bucket
+    s3.put_object(Bucket="converteddocs", Key=bucketkey, Body=pdf_data)
+    
 
-    with open(pdf_data, 'wb') as out:
-        pdf_writer.write(pdf_data)
-
-if __name__ == "__main__":
-    put_watermark(
-        input_page='Transcript.pdf',
-        output_page='watermark_added1.pdf',
-        watermark='watermark.pdf'
-    )
+def lambda_handler(event, context):
+    bucketkey = event['Records'][0]['s3']['object']['key']
+    put_watermark(bucketkey)
+    
+    return {
+        'statusCode': 200,
+        'body': json.dumps({
+            'message': 'Did it work yet?'
+        })
+    }
