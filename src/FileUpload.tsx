@@ -10,6 +10,21 @@ export function FileUpload() {
   // UUID for our file
   let pdfid = "";
 
+  function getWatermarkedPDF(pdfid: string) {
+    axios
+      .get(
+        "https://hf1crtnxu8.execute-api.us-east-1.amazonaws.com/v1/trigger",
+        {
+          headers: {
+            "pdf-id": "32198",
+          },
+        }
+      )
+      .then((res) => {
+        console.log(res);
+      });
+  }
+
   function handleUpload() {
     // This function is a proxy to the lambda function that will return presigned post
     const response: any = axios
@@ -30,7 +45,7 @@ export function FileUpload() {
             "content-type": "multipart/xml",
           },
         });
-        console.log(pdfid);
+        getWatermarkedPDF(pdfid);
       })
       .catch((err) => console.log(err));
   }
@@ -47,6 +62,7 @@ export function FileUpload() {
         <Form.Control onChange={handleChange} type="file" />
       </Form.Group>
       <Button onClick={handleUpload}>Upload</Button>
+      <Button onClick={() => getWatermarkedPDF("pdfid")}>Testing</Button>
     </Container>
   );
 }
