@@ -11,12 +11,13 @@ export function FileUpload() {
   let pdfid = "";
 
   function getWatermarkedPDF(pdfid: string) {
+    // get request to trigger lambda function to pull the uploaded pdf from s3 and add samuelarant.com watermark to it
     axios
       .get(
         "https://hf1crtnxu8.execute-api.us-east-1.amazonaws.com/v1/trigger",
         {
-          headers: {
-            "pdf-id": "32198",
+          params: {
+            pdfid: pdfid,
           },
         }
       )
@@ -33,20 +34,24 @@ export function FileUpload() {
       )
       // This will add all the fields generated to our formdata
       .then((res) => {
-        for (var key in res["data"]["fields"]) {
-          fd.append(key, res["data"]["fields"][key]);
+        for (let key in res["data"]["Body"]["fields"]) {
+          fd.append(key, res["data"]["Body"]["fields"][key]);
         }
         // saving pdfid locally
-        pdfid = res["data"]["fields"]["key"];
+        pdfid = res["data"]["Body"]["fields"]["key"];
         // adding our file to the formdata
         fd.append("file", file);
-        axios.post(res["data"]["url"], fd, {
-          headers: {
-            "content-type": "multipart/xml",
-          },
-        });
-        getWatermarkedPDF(pdfid);
+        axios
+          .post(res["data"]["Body"]["url"], fd, {
+            headers: {
+              "content-type": "multipart/xml",
+            },
+          })
+          .then((res) => {
+            console.log(res);
+          });
       })
+
       .catch((err) => console.log(err));
   }
 
@@ -62,7 +67,6 @@ export function FileUpload() {
         <Form.Control onChange={handleChange} type="file" />
       </Form.Group>
       <Button onClick={handleUpload}>Upload</Button>
-      <Button onClick={() => getWatermarkedPDF("pdfid")}>Testing</Button>
     </Container>
   );
 }
