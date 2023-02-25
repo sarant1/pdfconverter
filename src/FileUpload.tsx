@@ -14,7 +14,7 @@ export function FileUpload() {
     // get request to trigger lambda function to pull the uploaded pdf from s3 and add samuelarant.com watermark to it
     axios
       .get(
-        "https://hf1crtnxu8.execute-api.us-east-1.amazonaws.com/v1/trigger",
+        "https://fo5f7jhe5ehtwmleomduvagh7i0llowa.lambda-url.us-east-1.on.aws/",
         {
           params: {
             pdfid: pdfid,
@@ -37,8 +37,10 @@ export function FileUpload() {
         for (let key in res["data"]["Body"]["fields"]) {
           fd.append(key, res["data"]["Body"]["fields"][key]);
         }
+
         // saving pdfid locally
         pdfid = res["data"]["Body"]["fields"]["key"];
+
         // adding our file to the formdata
         fd.append("file", file);
         axios
@@ -49,9 +51,9 @@ export function FileUpload() {
           })
           .then((res) => {
             console.log(res);
+            getWatermarkedPDF(pdfid);
           });
       })
-
       .catch((err) => console.log(err));
   }
 
@@ -67,6 +69,7 @@ export function FileUpload() {
         <Form.Control onChange={handleChange} type="file" />
       </Form.Group>
       <Button onClick={handleUpload}>Upload</Button>
+      <Button onClick={() => getWatermarkedPDF("jello")}>Testing</Button>
     </Container>
   );
 }
