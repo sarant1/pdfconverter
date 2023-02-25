@@ -10,6 +10,20 @@ export function FileUpload() {
   // UUID for our file
   let pdfid = "";
 
+  function generatePresignedURLtoGetObject(pdfid: string) {
+    axios
+      .get("https://hf1crtnxu8.execute-api.us-east-1.amazonaws.com/v1/getpdf", {
+        params: {
+          pdfid: pdfid,
+        },
+      })
+      .then((res) => {
+        let objectUrl = res["data"]["signedurl"];
+        window.open(objectUrl);
+        console.log(objectUrl);
+      });
+  }
+
   function getWatermarkedPDF(pdfid: string) {
     // get request to trigger lambda function to pull the uploaded pdf from s3 and add samuelarant.com watermark to it
     axios
@@ -52,6 +66,7 @@ export function FileUpload() {
           .then((res) => {
             console.log(res);
             getWatermarkedPDF(pdfid);
+            generatePresignedURLtoGetObject(pdfid);
           });
       })
       .catch((err) => console.log(err));
@@ -69,7 +84,6 @@ export function FileUpload() {
         <Form.Control onChange={handleChange} type="file" />
       </Form.Group>
       <Button onClick={handleUpload}>Upload</Button>
-      <Button onClick={() => getWatermarkedPDF("jello")}>Testing</Button>
     </Container>
   );
 }
