@@ -1,14 +1,21 @@
 import { SyntheticEvent, useState } from "react";
-import { Button, Container, Form } from "react-bootstrap";
+import { Button, Col, Container, Form, Row, Spinner } from "react-bootstrap";
 import axios from "axios";
 
 export function FileUpload() {
   // This will be used for the state of uploaded file
   const [file, setFile] = useState(null);
+  // state for loading animation
+  const [isWorking, setIsWorking] = useState(false);
   // Sinced we are using presigned post, we are using formdata to upload
-  let fd: any = new FormData();
+  var fd: any = new FormData();
   // UUID for our file
-  let pdfid = "";
+  var pdfid = "";
+
+  function resetState() {
+    setIsWorking(false);
+    setFile(null);
+  }
 
   function generatePresignedURLtoGetObject(pdfid: string) {
     axios
@@ -19,8 +26,12 @@ export function FileUpload() {
       })
       .then((res) => {
         let objectUrl = res["data"]["signedurl"];
+        resetState();
         window.open(objectUrl);
         console.log(objectUrl);
+      })
+      .catch((res) => {
+        console.log(res);
       });
   }
 
@@ -37,10 +48,16 @@ export function FileUpload() {
       )
       .then((res) => {
         console.log(res);
+        generatePresignedURLtoGetObject(pdfid);
+      })
+      .catch((res) => {
+        resetState();
       });
   }
 
   function handleUpload() {
+    // toggle spinner
+    setIsWorking(true);
     // This function is a proxy to the lambda function that will return presigned post
     const response: any = axios
       .get(
@@ -66,10 +83,12 @@ export function FileUpload() {
           .then((res) => {
             console.log(res);
             getWatermarkedPDF(pdfid);
-            generatePresignedURLtoGetObject(pdfid);
           });
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        resetState();
+      });
   }
 
   // On file change, this will set our file to the updated file
@@ -78,12 +97,26 @@ export function FileUpload() {
   }
 
   return (
-    <Container className="bg-light" style={{ marginTop: "30vh" }}>
-      <Form.Group controlId="formfile" className="mb-3">
+    <Container
+      className="bg-dark rounded"
+      style={{ marginTop: "30vh", width: "460px" }}
+    >
+      <Form.Group controlId="formfile" className="mb-2 m">
         <Form.Label></Form.Label>
         <Form.Control onChange={handleChange} type="file" />
       </Form.Group>
-      <Button onClick={handleUpload}>Upload</Button>
+      <div className="d-flex flex-row pb-3">
+        <div className="d-inline">
+          <Button onClick={handleUpload} className={isWorking ? "d-none" : ""}>
+            Upload
+          </Button>
+        </div>
+        <div className="">
+          <Spinner className={isWorking ? "" : "d-none"} variant="primary">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      </div>
     </Container>
   );
 }
