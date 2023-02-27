@@ -1,4 +1,4 @@
-import { SyntheticEvent, useState } from "react";
+import { SyntheticEvent, useRef, useState } from "react";
 import { Button, Col, Container, Form, Row, Spinner } from "react-bootstrap";
 import axios from "axios";
 
@@ -7,6 +7,8 @@ export function FileUpload() {
   const [file, setFile] = useState(null);
   // state for loading animation
   const [isWorking, setIsWorking] = useState(false);
+  // file input ref so it can be reset upon upload
+  const inputRef = useRef<any>(null);
   // Sinced we are using presigned post, we are using formdata to upload
   var fd: any = new FormData();
   // UUID for our file
@@ -15,6 +17,7 @@ export function FileUpload() {
   function resetState() {
     setIsWorking(false);
     setFile(null);
+    inputRef.current!.value = null;
   }
 
   function generatePresignedURLtoGetObject(pdfid: string) {
@@ -55,7 +58,7 @@ export function FileUpload() {
       });
   }
 
-  function handleUpload() {
+  function handleUpload(e: any) {
     // toggle spinner
     setIsWorking(true);
     // This function is a proxy to the lambda function that will return presigned post
@@ -99,20 +102,30 @@ export function FileUpload() {
   return (
     <Container
       className="bg-dark rounded"
-      style={{ marginTop: "30vh", width: "460px" }}
+      style={{ marginTop: "30vh", width: "460px", height: "130px" }}
     >
       <Form.Group controlId="formfile" className="mb-2 m">
         <Form.Label></Form.Label>
-        <Form.Control onChange={handleChange} type="file" />
+        <Form.Control
+          ref={inputRef}
+          className={isWorking ? "d-none" : ""}
+          onChange={handleChange}
+          type="file"
+          accept="application/pdf"
+        />
       </Form.Group>
-      <div className="d-flex flex-row pb-3">
+      <div className="d-flex flex-row pb-3 justify-content-center">
         <div className="d-inline">
           <Button onClick={handleUpload} className={isWorking ? "d-none" : ""}>
             Upload
           </Button>
         </div>
-        <div className="">
-          <Spinner className={isWorking ? "" : "d-none"} variant="primary">
+        <div className="flex justify-content-center">
+          <Spinner
+            className={isWorking ? "" : "d-none"}
+            style={{ width: "4rem", height: "4rem" }}
+            variant="primary"
+          >
             <span className="visually-hidden">Loading...</span>
           </Spinner>
         </div>
